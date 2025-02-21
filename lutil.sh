@@ -21,7 +21,7 @@ fi
 
 declare -A categories
 categories=(
-    ["Other"]="discord gparted cmatrix"
+    ["Other"]="discord cmatrix"
     ["Development"]="git vim gcc make neovim code visual-studio-code-bin"
     ["Drivers"]="intel-ucode amd-ucode"
     ["Browsers"]="firefox brave-beta-bin google-chrome"
@@ -115,7 +115,6 @@ select_packages() {
                 package_states["${all_packages[$count]}"]=$( [[ ${package_states["${all_packages[$count]}"]} == "on" ]] && echo "off" || echo "on" )
                 ;;
             "q")
-                selected_packages=()
                 for p in "${all_packages[@]}"; do
                     if [[ ${package_states[$p]} == "on" ]]; then
                         selected_packages+=("$p")
