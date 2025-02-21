@@ -67,25 +67,27 @@ draw_menu() {
         fi
     done
 }
+declare -A package_states  # Move outside the function to retain state
+all_packages=()
 
 select_packages() {
-    declare -A package_states
-    all_packages=()
-    
-    for category in "${!categories[@]}"; do
-        for p in ${categories[$category]}; do
-            all_packages+=("$p")
-            package_states["$p"]="off"
+    # Populate package list and initialize package states only if empty
+    if [[ ${#all_packages[@]} -eq 0 ]]; then
+        for category in "${!categories[@]}"; do
+            for p in ${categories[$category]}; do
+                all_packages+=("$p")
+                package_states["$p"]=${package_states["$p"]:-"off"}  # Retain state
+            done
         done
-    done
-    
+    fi
+
     count=0
     while true; do
         clear
         echo "Select packages to install (X to toggle, Q to confirm):"
         echo "------------------------------------------------------"
         start=$((count > PAGE_SIZE ? count - PAGE_SIZE : 0))
-        for ((i=start; i<count+PAGE_SIZE && i<${#all_packages[@]}; i++)); do
+        for ((i = start; i < count + PAGE_SIZE && i < ${#all_packages[@]}; i++)); do
             p=${all_packages[$i]}
             if [[ $i -eq $count ]]; then
                 if [[ ${package_states["$p"]} == "on" ]]; then
@@ -101,7 +103,7 @@ select_packages() {
                 fi
             fi
         done
-        
+
         read -rsn1 key
         case $key in
             $ESC)
@@ -115,6 +117,7 @@ select_packages() {
                 package_states["${all_packages[$count]}"]=$( [[ ${package_states["${all_packages[$count]}"]} == "on" ]] && echo "off" || echo "on" )
                 ;;
             "q")
+                selected_packages=()  # Clear old selections
                 for p in "${all_packages[@]}"; do
                     if [[ ${package_states[$p]} == "on" ]]; then
                         selected_packages+=("$p")
@@ -127,6 +130,7 @@ select_packages() {
         ((count >= ${#all_packages[@]})) && count=$((${#all_packages[@]} - 1))
     done
 }
+
 
 read_input() {
     read -rsn1 key
