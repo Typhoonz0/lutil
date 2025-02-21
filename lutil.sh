@@ -56,6 +56,7 @@ task_install_packages() {
 draw_menu() {
     clear
     echo "==== LUTIL ===="
+    echo "WHEN YOU GO BACK INTO THE PACKAGE MENU, THE PACKAGE IS STILL SELECTED AND WILL INSTALL, DON'T PICK IT AGAIN."
     echo "Simple pacman and yay utility by liam"
     echo "X to select an option, Q to go back"
     echo "==============="
