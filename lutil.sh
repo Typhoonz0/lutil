@@ -57,7 +57,7 @@ draw_menu() {
     clear
     echo "==== LUTIL ===="
     echo "Simple pacman and yay utility by liam"
-    echo "X to select an option"
+    echo "X to select an option, Q to go back"
     echo "==============="
     for i in "${!OPTIONS[@]}"; do
         if [[ $i -eq $SELECTED ]]; then
