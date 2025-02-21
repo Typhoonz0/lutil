@@ -21,12 +21,13 @@ fi
 
 declare -A categories
 categories=(
-    ["Liam's Picks"]="firefox fastfetch nano neovim gnome tree btop zsh curl openssh vlc git discord gparted"
+    ["Other"]="discord gparted cmatrix"
     ["Development"]="git vim gcc make neovim code visual-studio-code-bin"
+    ["Drivers"]="intel-ucode amd-ucode"
     ["Browsers"]="firefox brave-beta-bin google-chrome"
-    ["Multimedia"]="vlc ffmpeg gimp"
+    ["Multimedia"]="vlc ffmpeg gimp libreoffice-still"
     ["Networking"]="wget curl openssh discord"
-    ["Utilities"]="zsh htop btop neofetch fastfetch tree gparted"
+    ["Utilities"]="zsh btop neofetch fastfetch tree gparted"
     ["Desktops"]="gnome plasma"
 )
 
@@ -55,7 +56,7 @@ task_install_packages() {
 draw_menu() {
     clear
     echo "==== LUTIL ===="
-    echo "Pacman and yay utility. Will install yay automatically if needed (:"
+    echo "Simple pacman and yay utility by liam"
     echo "X to select an option"
     echo "==============="
     for i in "${!OPTIONS[@]}"; do
