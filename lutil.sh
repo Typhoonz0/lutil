@@ -21,18 +21,21 @@ fi
 
 declare -A categories
 categories=(
-    [Development]="git vim gcc make neovim code visual-studio-code-bin"
-    [Browsers]="firefox brave-beta-bin google-chrome"
-    [Multimedia]="vlc ffmpeg gimp"
-    [Networking]="wget curl openssh discord"
-    [Utilities]="zsh htop btop neofetch fastfetch tree gparted"
-    [Desktops]="gnome plasma"
-    [Liams_Picks]="firefox fastfetch nano neovim gnome tree btop zsh curl openssh vlc git discord gparted"
+    ["Liam's Picks"]="firefox fastfetch nano neovim gnome tree btop zsh curl openssh vlc git discord gparted"
+    ["Development"]="git vim gcc make neovim code visual-studio-code-bin"
+    ["Browsers"]="firefox brave-beta-bin google-chrome"
+    ["Multimedia"]="vlc ffmpeg gimp"
+    ["Networking"]="wget curl openssh discord"
+    ["Utilities"]="zsh htop btop neofetch fastfetch tree gparted"
+    ["Desktops"]="gnome plasma"
 )
 
 selected_packages=()
 OPTIONS=("Select Packages" "Install Selected Packages" "Exit")
 SELECTED=0
+
+LINES=$(tput lines)
+PAGE_SIZE=$((LINES - 5))
 
 task_install_packages() {
     echo "Installing packages..."
@@ -65,92 +68,63 @@ draw_menu() {
 }
 
 select_packages() {
+    declare -A package_states
+    all_packages=()
+    
+    for category in "${!categories[@]}"; do
+        for p in ${categories[$category]}; do
+            all_packages+=("$p")
+            package_states["$p"]="off"
+        done
+    done
+    
+    count=0
     while true; do
         clear
-        echo "Select a category (X to choose, Q to quit):"
-        category_list=("${!categories[@]}")
-
-        for i in "${!category_list[@]}"; do
-            if [[ $i -eq $SELECTED ]]; then
-                echo -e "\033[1;32m> ${category_list[$i]}\033[0m"
+        echo "Select packages to install (X to toggle, Q to confirm):"
+        echo "------------------------------------------------------"
+        start=$((count > PAGE_SIZE ? count - PAGE_SIZE : 0))
+        for ((i=start; i<count+PAGE_SIZE && i<${#all_packages[@]}; i++)); do
+            p=${all_packages[$i]}
+            if [[ $i -eq $count ]]; then
+                if [[ ${package_states["$p"]} == "on" ]]; then
+                    echo -e "\033[1;32m> [x] $p\033[0m"
+                else
+                    echo -e "\033[1;32m> [ ] $p\033[0m"
+                fi
             else
-                echo "  ${category_list[$i]}"
+                if [[ ${package_states["$p"]} == "on" ]]; then
+                    echo "  [x] $p"
+                else
+                    echo "  [ ] $p"
+                fi
             fi
         done
-
+        
         read -rsn1 key
         case $key in
             $ESC)
                 read -rsn2 key
                 case $key in
-                    "[A") ((SELECTED--)) ;;
-                    "[B") ((SELECTED++)) ;;
+                    "[A") ((count--)) ;;
+                    "[B") ((count++)) ;;
                 esac
                 ;;
-            "q") return ;;
             "x")
-                selected_category="${category_list[$SELECTED]}"
-                packages=(${categories[$selected_category]})
-                declare -A package_states
-                
-                for p in "${packages[@]}"; do
-                    if [[ " ${selected_packages[@]} " =~ " $p " ]]; then
-                        package_states["$p"]="on"
-                    else
-                        package_states["$p"]="off"
+                package_states["${all_packages[$count]}"]=$( [[ ${package_states["${all_packages[$count]}"]} == "on" ]] && echo "off" || echo "on" )
+                ;;
+            "q")
+                selected_packages=()
+                for p in "${all_packages[@]}"; do
+                    if [[ ${package_states[$p]} == "on" ]]; then
+                        selected_packages+=("$p")
                     fi
                 done
-
-                count=0
-                while true; do
-                    clear
-                    echo "Select packages from $selected_category (X to toggle, Q to confirm):"
-                    for i in "${!packages[@]}"; do
-                        if [[ $i -eq $count ]]; then
-                            if [[ ${package_states["${packages[$i]}"]} == "on" ]]; then
-                                echo -e "\033[1;32m> [x] ${packages[$i]}\033[0m"
-                            else
-                                echo -e "\033[1;32m> [ ] ${packages[$i]}\033[0m"
-                            fi
-                        else
-                            if [[ ${package_states["${packages[$i]}"]} == "on" ]]; then
-                                echo "  [x] ${packages[$i]}"
-                            else
-                                echo "  [ ] ${packages[$i]}"
-                            fi
-                        fi
-                    done
-
-                    read -rsn1 key
-                    case $key in
-                        $ESC)
-                            read -rsn2 key
-                            case $key in
-                                "[A") ((count--)) ;;
-                                "[B") ((count++)) ;;
-                            esac
-                            ;;
-                        "x")
-                            package_states["${packages[$count]}"]=$( [[ ${package_states["${packages[$count]}"]} == "on" ]] && echo "off" || echo "on" )
-                            ;;
-                        "") break ;;
-                        "q")
-                            selected_packages=()
-                            for p in "${packages[@]}"; do
-                                if [[ ${package_states[$p]} == "on" ]]; then
-                                    selected_packages+=("$p")
-                                fi
-                            done
-                            break
-                            ;;
-                    esac
-                    ((count < 0)) && count=0
-                    ((count >= ${#packages[@]})) && count=$((${#packages[@]} - 1))
-                done
+                return
                 ;;
         esac
-        ((SELECTED < 0)) && SELECTED=0
-        ((SELECTED >= ${#category_list[@]})) && SELECTED=$((${#category_list[@]} - 1))
+        ((count < 0)) && count=0
+        ((count >= ${#all_packages[@]})) && count=$((${#all_packages[@]} - 1))
     done
 }
 
